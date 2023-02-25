@@ -1,0 +1,24 @@
+﻿@model DirectoryChangeModel;
+@using Microsoft.AspNetCore.Http;
+@using System.IO;
+@{
+    ViewData["Title"] = "Directory";
+}
+<div class="text-center">
+    @{
+        if (!String.IsNullOrWhiteSpace(@Model.RequestedNewDirectory))
+        {
+            <div>Supplied new directory: [<code>@Model.RequestedNewDirectory</code>]</div> 
+            <div>Supplied new directory exists: [<code>@Model.RequestedNewDirectoryValidity</code>]</div>
+            <br />
+        }
+    }
+    <form asp-action="Directory" method="post">
+        <div>Current Directory: [<code>@Model.CurrentDirectory</code>]</div>
+        <div>
+            <label asp-for="RequestedNewDirectory">New Directory:</label>
+            <input asp-for="RequestedNewDirectory" type="text" value="" placeholder="@Model.CurrentDirectory" />
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+</div>
