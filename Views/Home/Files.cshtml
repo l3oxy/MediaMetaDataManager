@@ -21,8 +21,8 @@
             )
         {
             FileInfo fileRequested = new(System.IO.Path.Combine(Model.CurrentDirectory.FullName, ids[0]));
-            <div>File: [<code>@fileRequested.Name</code>]</div> 
-            <div>Exists: [<code>@fileRequested.Exists</code>]</div>
+            <div>File: [@if(fileRequested.Exists){<code class="font-monospace text-success">@fileRequested.Name</code>}else{<code class="font-monospace text-danger">@fileRequested.Name</code>}]</div>
+            <div>Exists: [@if(fileRequested.Exists){<code class="text-success">True ✅</code>}else{<code class="text-danger">False ❌</code>}]</div>
         }
         else
         {
