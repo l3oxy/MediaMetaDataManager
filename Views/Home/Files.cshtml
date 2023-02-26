@@ -41,7 +41,7 @@
                     // check if mid3v is accessible
                     System.Diagnostics.Process proc = new System.Diagnostics.Process();
                     proc.EnableRaisingEvents = false;
-                    proc.StartInfo.FileName = "mid3v2xxx";
+                    proc.StartInfo.FileName = "mid3v2";
                     proc.StartInfo.Arguments = "--version";
                     bool mid3v2_IsAccessible = false;
                     try 
@@ -71,14 +71,16 @@
 
                     if (mid3v2_IsAccessible)
                     {
+                        // read song name, output to page
 
+
+
+                        // read artist name, output to page
+                        // read vid-id/remark (whatever it's called), output to screen
+                        // check if file is writable
+                        // have edit buttons or text fields to enable changing song or artist
                     }
 
-                    // read song name, output to page
-                    // read artist name, output to page
-                    // read vid-id/remark (whatever it's called), output to screen
-                    // check if file is writable
-                    // have edit buttons or text fields to enable changing song or artist
                 }
             </div>
         }
@@ -87,17 +89,19 @@
             var files = Model.CurrentDirectory.EnumerateFiles();
             if (files is not null && files.Count() >= 1)
             {
-                {<table class="table table-dark table-striped table-bordered table-hover">
-                    <thead>
-                        <tr><th scope="col">Filename</th></tr>
-                    </thead>
-                    <tbody>@{
-                            foreach (FileInfo file in files)
-                            {
-                                {<tr><td><code><a asp-action="Files" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
-                            }
-                    }</tbody>
-                </table>}
+                {
+                    <div>Quantity of files: @files.Count()</div>
+                    <table class="table table-dark table-striped table-bordered table-hover">
+                        <thead>
+                            <tr><th scope="col">Filename</th></tr>
+                        </thead>
+                        <tbody>@{
+                                foreach (FileInfo file in files)
+                                {
+                                    {<tr><td><code><a asp-action="Files" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
+                                }
+                        }</tbody>
+                    </table>}
             }
         }
     }
