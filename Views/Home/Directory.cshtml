@@ -1,4 +1,4 @@
-﻿@model DirectoryChangeModel;
+﻿@model DirectoryModel;
 @using Microsoft.AspNetCore.Http;
 @using System.IO;
 @{
@@ -6,10 +6,10 @@
 }
 <div class="text-center">
     @{
-        if (!String.IsNullOrWhiteSpace(@Model.RequestedNewDirectory))
+        if (!String.IsNullOrWhiteSpace(@Model.RequestedNewDirectory?.FullName))
         {
-            <div>Supplied new directory: [<code>@Model.RequestedNewDirectory</code>]</div> 
-            <div>Supplied new directory exists: [<code>@Model.RequestedNewDirectoryValidity</code>]</div>
+            <div>Supplied new directory: [<code>@Model.RequestedNewDirectory.FullName</code>]</div> 
+            <div>Supplied new directory exists: [<code>@Model.RequestedNewDirectory.Exists</code>]</div>
             <br />
         }
     }

@@ -21,40 +21,29 @@ public class HomeController : Controller
 
     public IActionResult Files()
     {
-        string CurrentDirectory = HttpContext.Session.GetString("Directory") ?? Environment.CurrentDirectory;
-        return View(model: CurrentDirectory);
+        DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
+        return View(model: myModel);
     }
 
     public IActionResult Directory()
     {
-        var model = new DirectoryChangeModel(){ CurrentDirectory = HttpContext.Session.GetString("Directory") ?? Environment.CurrentDirectory};
-        return View(model);
+        DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
+        return View(myModel);
     }
 
     [HttpPost] public IActionResult Directory(DirectoryChangePostArgs postArgs)
     {
-        var model = new DirectoryChangeModel(){RequestedNewDirectory = postArgs.RequestedNewDirectory, RequestedNewDirectoryValidity = false};
+        DirectoryModel model = new(RequestedNewDirectoryFullPath: postArgs.RequestedNewDirectory);
 
-        if (!String.IsNullOrWhiteSpace(postArgs.RequestedNewDirectory))
+        // If user provided a directory that exists, create a session variable of this new dir. Else try to get old session variable of dir.
+        if (model.RequestedNewDirectory.Exists)
         {
-            if (System.IO.Directory.Exists(postArgs?.RequestedNewDirectory))
-            {
-                HttpContext.Session.SetString("Directory", postArgs.RequestedNewDirectory);
-
-                model.RequestedNewDirectoryValidity = true;
-            }
+            HttpContext.Session.SetString("Directory", model.RequestedNewDirectory.FullName);
+            model.CurrentDirectory = model.RequestedNewDirectory;
+        } else {
+            model.CurrentDirectory = new DirectoryInfo(HttpContext.Session.GetString("Directory"));
         }
-        var sessionDirectory = HttpContext.Session.GetString("Directory");
-        if (!String.IsNullOrWhiteSpace(sessionDirectory))
-        {
-            model.CurrentDirectory = sessionDirectory;
-        }
-        
 
-        // int person_Id = person.Person_ID;
-        // string person_name = person.Person_Name;
-        // string person_gender = person.Person_Gender;
-        // string person_city = person.Person_City;
         return View(model: model);
     }
 
