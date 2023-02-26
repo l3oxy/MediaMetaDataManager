@@ -8,23 +8,39 @@
     Current Directory: [<code><a asp-action="Directory">@Model?.CurrentDirectory?.FullName</a></code>]
     @{
         if (Model is null)
-            return;
-        var files = Model.CurrentDirectory.EnumerateFiles();
-        if (files is not null && files.Count() >= 1)
         {
-            {<table class="table table-dark table-striped table-bordered table-hover">
-                <thead>
-                    <tr><th scope="col">File-path</th></tr>
-                </thead>
-                <tbody>@{
-                        foreach (FileInfo file in files)
-                        {
-                            {<tr><td><div><code><a asp-action="">@file.Name</a></code></div></td></tr>}
-                        }
-                }</tbody>
-            </table>}
+            return;
         }
-
+        Microsoft.Extensions.Primitives.StringValues ids;
+        if  (
+                Context.Request.Query.TryGetValue("id", out ids)
+                &&
+                ids.Count == 1
+                &&
+                !String.IsNullOrWhiteSpace(ids[0])
+            )
+        {
+            FileInfo fileRequested = new(System.IO.Path.Combine(Model.CurrentDirectory.FullName, ids[0]));
+            <div>File: [<code>@fileRequested.Name</code>]</div> 
+            <div>Exists: [<code>@fileRequested.Exists</code>]</div>
+        }
+        else
+        {
+            var files = Model.CurrentDirectory.EnumerateFiles();
+            if (files is not null && files.Count() >= 1)
+            {
+                {<table class="table table-dark table-striped table-bordered table-hover">
+                    <thead>
+                        <tr><th scope="col">Filename</th></tr>
+                    </thead>
+                    <tbody>@{
+                            foreach (FileInfo file in files)
+                            {
+                                {<tr><td><code><a asp-action="Files" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
+                            }
+                    }</tbody>
+                </table>}
+            }
+        }
     }
-
 </div>
