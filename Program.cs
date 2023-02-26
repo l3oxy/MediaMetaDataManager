@@ -33,7 +33,11 @@ app.UseAuthorization();
 app.UseSession(); // Enables session/session-variables (the alternative to cookies)
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+	name: "default",
+	pattern: "{action=Index}",
+	defaults: new { controller = "Home"});
+app.MapControllerRoute(
+	name: "backup",
+	pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
