@@ -21,8 +21,66 @@
             )
         {
             FileInfo fileRequested = new(System.IO.Path.Combine(Model.CurrentDirectory.FullName, ids[0]));
-            <div>File: [@if(fileRequested.Exists){<code class="font-monospace text-success">@fileRequested.Name</code>}else{<code class="font-monospace text-danger">@fileRequested.Name</code>}]</div>
-            <div>Exists: [@if(fileRequested.Exists){<code class="text-success">True ✅</code>}else{<code class="text-danger">False ❌</code>}]</div>
+            <div>File: 
+                [@if (fileRequested.Exists)
+                        {<code class="font-monospace text-success">@fileRequested.Name</code>}
+                else
+                        {<code class="font-monospace text-danger">@fileRequested.Name</code>}]
+            </div>
+            
+            <div>Exists: 
+                [@if (fileRequested.Exists)
+                        {<code class="text-success">True ✅</code>}
+                else
+                        {<code class="text-danger">False ❌</code>}]
+            </div>
+
+            <div>
+                @if (fileRequested.Exists)
+                {
+                    // check if mid3v is accessible
+                    System.Diagnostics.Process proc = new System.Diagnostics.Process();
+                    proc.EnableRaisingEvents = false;
+                    proc.StartInfo.FileName = "mid3v2xxx";
+                    proc.StartInfo.Arguments = "--version";
+                    bool mid3v2_IsAccessible = false;
+                    try 
+                    {
+                        proc.Start();
+                        if (!proc.WaitForExit(2000))
+                        {
+                            proc.Kill(true);
+                        }
+                        mid3v2_IsAccessible = (proc.ExitCode == 0);
+                    } 
+                    catch 
+                    {
+                        // oh well, we tried
+                    }
+                    
+
+                    <div>mid3v2: 
+                        @if (mid3v2_IsAccessible)
+                                {<span>[<code class="text-success">True ✅</code>]</span>}
+                        else
+                                {<span>[<code class="text-danger">False ❌</code>]
+                                <div>Failed to access <code class="bg-dark">@proc.StartInfo.FileName</code>. 
+                                Please see <a href="https://github.com/l3oxy/MediaMetaDataManager" target="_blank">the documentation</a> for instructions to resolve.</div>
+                                </span>}
+                    </div>
+
+                    if (mid3v2_IsAccessible)
+                    {
+
+                    }
+
+                    // read song name, output to page
+                    // read artist name, output to page
+                    // read vid-id/remark (whatever it's called), output to screen
+                    // check if file is writable
+                    // have edit buttons or text fields to enable changing song or artist
+                }
+            </div>
         }
         else
         {
