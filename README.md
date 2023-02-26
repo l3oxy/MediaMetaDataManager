@@ -31,11 +31,11 @@ In Ubuntu Linux, this can be configured using the instructions at "https://askub
     1. Restart your computer's shell via keyboard shortcut `ALT` + `F2` to open the command window, and then enter `restart`.
     2. Afterwards restart this application.
 
-### Windows
-
-Search the web for "move Music folder Windows". Follow those instructions, and then restart this application.
-
-### Persistance after computer restart
+#### Persistance after computer restart
 
 If `XDG_MUSIC_DIR` points to a location that is not available when your computer restarts (e.g. an external drive that must be manually remounted), then follow the instructions at "https://unix.stackexchange.com/questions/207216/user-dirs-dirs-reset-at-start-up", which instructs to edit text file `~/.config/user-dirs.conf` so that setting `enabled` equals `False` (i.e. a line of `enabled=False`).
 If this file is nonexistant, then create it and add said setting/line into it.
+
+### Windows
+
+Search the web for "move Music folder Windows". Follow those instructions, and then restart this application.
