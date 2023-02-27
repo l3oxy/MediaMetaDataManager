@@ -10,6 +10,7 @@ Other platforms/configurations might incidentally work too.
 ## mid3v2
 
 This application relies on the program `mid3v2` to access the metadata of media files.
+I assume that this `mid3v2` on GitHub at "https://github.com/dhamaniasad/mutagen/blob/master/tools/mid3v2", but I might be incorrect.
 
 To get `mid3v2` install package either `python-mutagen` or `python3-mutagen`, which brings command `mid3v2` 
 (e.g. on Ubuntu use `sudo apt-get update -y` and then `sudo apt install python-mutagen`, but if that fails then try `sudo apt install python3-mutagen`).
