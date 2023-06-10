@@ -1,0 +1,119 @@
+@model DirectoryModel;
+@using System.IO;
+@using MediaMetaDataManager.MetaData;
+@{
+    ViewData["Title"] = "File";
+}
+
+<div class="text-center">
+    Current Directory: [<code><a asp-action="Directory">@Model?.CurrentDirectory?.FullName</a></code>]
+    @{
+        if (Model is null)
+        {
+            return;
+        }
+        
+        Microsoft.Extensions.Primitives.StringValues ids;
+        if  (
+                Context.Request.Query.TryGetValue("id", out ids)
+                &&
+                ids.Count == 1
+                &&
+                !String.IsNullOrWhiteSpace(ids[0])
+            )
+        {
+            FileInfo fileRequested = new(System.IO.Path.Combine(Model.CurrentDirectory.FullName, ids[0])); // This gives warning because could be empty, but relax because literally checking for that in the above IF.
+            <div>File: 
+                [@if (fileRequested.Exists)
+                        {<code class="font-monospace text-success">@fileRequested.Name</code>}
+                else
+                        {<code class="font-monospace text-danger">@fileRequested.Name</code>}]
+            </div>
+            
+            <div>Exists: 
+                [@if (fileRequested.Exists)
+                        {<code class="text-success">True ✅</code>}
+                else
+                        {<code class="text-danger">False ❌</code>}]
+            </div>
+
+            <div>
+                @if (fileRequested.Exists)
+                {
+                    bool metaDataProgram_IsAccessible = MetaDataProgram.MetaDataProgramCheck();
+
+                    <div>@MetaDataProgram.FileName: 
+                        @if (metaDataProgram_IsAccessible)
+                                {<span>[<code class="text-success">True ✅</code>]</span>}
+                        else
+                                {<span>[<code class="text-danger">False ❌</code>]
+                                <div>Failed to access <code class="bg-dark">@MetaDataProgram.FileName</code>. 
+                                Please see <a href="https://github.com/l3oxy/MediaMetaDataManager" target="_blank">the documentation</a> for instructions to resolve.</div>
+                                </span>}
+                    </div>
+
+                    if (metaDataProgram_IsAccessible)
+                    {
+                        FileMetaData fileMetaData = MetaDataProgram.GetInfo(fileRequested);
+                        
+
+                        if (fileMetaData.SuccessfullyRead)
+                        {
+                            <div><div>Output info: </div><div style="min-height: 1.625em" class="border font-monospace">@{try{<pre>@fileMetaData.StandardError</pre><br /><pre>@fileMetaData.StandardOutput</pre>}catch{}}</div></div>
+                            {
+                                <table class="table table-dark table-striped table-bordered table-hover">@fileMetaData.Frames.Count
+                                    <thead>
+                                        <tr><th scope="col">MetaData</th></tr>
+                                    </thead>
+                                    <tbody>@{
+                                            if (fileMetaData.Frames.Count == 0) 
+                                            {
+                                                {<div>No metadata found on this file.</div>}
+                                            }
+                                            else
+                                            {
+                                                foreach (FileMetaDataFrame frame in fileMetaData.Frames)
+                                                {
+                                                    {<tr><td>
+                                                            <details>
+                                                                @* FIXME: This form should use asp-for  and not for,name,etc. *@
+                                                                <summary>
+                                                                    <form action="#" method="post" style="display: inline">
+                                                                        <label for="@frame.Id">@frame.Id</label>: 
+                                                                        <input id="@frame.Id" name="@frame.Id" type="text" value="@frame.Value" placeholder="@frame.Value" />
+                                                                    </form>
+                                                                </summary>
+                                                                @frame.Raw
+                                                            </details>
+                                                        </td></tr>}
+                                                }
+                                            }
+                                    }</tbody>
+                                </table>
+                            }
+                        }
+                        else
+                        {
+                            <div>
+                                <div class="text-danger">Failed to get metadata for file.</div>
+                                <div>Exit code (if any): <code class="border font-monospace text-danger">@{try{<span>@fileMetaData.ExitCode</span>}catch{}}</code></div>
+                                <div>
+                                    <form action="#" method="post">
+                                        <div style="display: inline-block; width: 49%">Output info (if any): </div>
+                                        <div style="display: inline-block; width: 49%; min-height: 1.625em" class="border font-monospace">@{try{<pre>@fileMetaData.StandardOutput</pre>}catch{}}</div>
+                                    </form>
+                                </div>
+                                <div>
+                                    <div style="display: inline-block; width: 49%">Error info (if any): </div>
+                                    <div style="display: inline-block; width: 49%; min-height: 1.625em" class="border font-monospace text-danger">@{try{<pre>@fileMetaData.StandardError</pre>}catch{}}</div></div>
+                            </div>
+                        }
+
+
+                    }
+
+                }
+            </div>
+        }
+    }
+</div>

@@ -17,8 +17,8 @@ To get `mid3v2` install package either `python-mutagen` or `python3-mutagen`, wh
 
 # Directory
 
-This application looks at media files in the manner of looking at one directory at a time.
-This application initially does not know which application you want to work in, thus it asks your computer where your music folder is and uses that.
+This application looks at media files in the manner of looking at one folder at a time.
+This application initially does not know which folder you want to work in, thus it asks your computer where your music folder is and uses that.
 You may change/override which directory this application uses via this application's "Directory" page.
 
 ## Changing your computer's Music directory
@@ -35,7 +35,7 @@ In Ubuntu Linux, this can be configured using the instructions at "https://askub
 #### Persistance after computer restart
 
 If `XDG_MUSIC_DIR` points to a location that is not available when your computer restarts (e.g. an external drive that must be manually remounted), then follow the instructions at "https://unix.stackexchange.com/questions/207216/user-dirs-dirs-reset-at-start-up", which instructs to edit text file `~/.config/user-dirs.conf` so that setting `enabled` equals `False` (i.e. a line of `enabled=False`).
-If this file is nonexistant, then create it and add said setting/line into it.
+If this file is nonexistant, then create it as an empty text file and add said setting/line into it.
 
 ### Windows
 

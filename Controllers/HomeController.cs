@@ -19,12 +19,6 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Files()
-    {
-        DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
-        return View(model: myModel);
-    }
-
     public IActionResult Directory()
     {
         DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
@@ -46,6 +40,28 @@ public class HomeController : Controller
 
         return View(model: model);
     }
+
+    public IActionResult Files()
+    {
+        DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
+        return View(model: myModel);
+    }
+
+    public IActionResult File()
+    {
+        Microsoft.Extensions.Primitives.StringValues ids;
+        if (HttpContext.Request.Query.TryGetValue("id", out ids) && ids.Count == 1)
+        {
+            DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
+            return View(model: myModel);
+        }
+        else
+        {
+            return RedirectToAction(actionName: nameof(Files));
+        }
+    }
+
+
 
     public IActionResult Privacy()
     {

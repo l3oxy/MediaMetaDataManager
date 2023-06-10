@@ -11,195 +11,24 @@
         {
             return;
         }
+
         Microsoft.Extensions.Primitives.StringValues ids;
-        if  (
-                Context.Request.Query.TryGetValue("id", out ids)
-                &&
-                ids.Count == 1
-                &&
-                !String.IsNullOrWhiteSpace(ids[0])
-            )
+        var files = Model.CurrentDirectory.EnumerateFiles();
+        if (files is not null && (files.Count() >= 1))
         {
-            FileInfo fileRequested = new(System.IO.Path.Combine(Model.CurrentDirectory.FullName, ids[0]));
-            <div>File: 
-                [@if (fileRequested.Exists)
-                        {<code class="font-monospace text-success">@fileRequested.Name</code>}
-                else
-                        {<code class="font-monospace text-danger">@fileRequested.Name</code>}]
-            </div>
-            
-            <div>Exists: 
-                [@if (fileRequested.Exists)
-                        {<code class="text-success">True ✅</code>}
-                else
-                        {<code class="text-danger">False ❌</code>}]
-            </div>
-
-            <div>
-                @if (fileRequested.Exists)
-                {
-                    string metaDataProgram = "mid3v2";
-
-                    // check if mid3v is accessible
-                    System.Diagnostics.Process metaDataProcess = new System.Diagnostics.Process();
-                    //proc.EnableRaisingEvents = false; // idk whether to use this.
-                    metaDataProcess.StartInfo.FileName = metaDataProgram;
-                    metaDataProcess.StartInfo.Arguments = "--version";
-                    bool metaDataProgram_IsAccessible = false;
-                    try 
-                    {
-                        metaDataProcess.Start();
-                        if (!metaDataProcess.WaitForExit(5000))
-                        {
-                            metaDataProcess.Kill(true);
-                        }
-                        metaDataProgram_IsAccessible = (metaDataProcess.ExitCode == 0);
-                    } 
-                    catch 
-                    {
-                        // Oh well, we tried -ToyStory
-                    }
-
-                    // TODO: Probs should redirect stderr and log it to help debug why mid3v2 is inaccessible.
-                    
-
-                    <div>@metaDataProgram: 
-                        @if (metaDataProgram_IsAccessible)
-                                {<span>[<code class="text-success">True ✅</code>]</span>}
-                        else
-                                {<span>[<code class="text-danger">False ❌</code>]
-                                <div>Failed to access <code class="bg-dark">@metaDataProcess.StartInfo.FileName</code>. 
-                                Please see <a href="https://github.com/l3oxy/MediaMetaDataManager" target="_blank">the documentation</a> for instructions to resolve.</div>
-                                </span>}
-                    </div>
-
-                    if (metaDataProgram_IsAccessible)
-                    {
-                        // TODO:
-                        // read song name, output to page: --TIT2 Title,
-                        // read artist name, output to page: --TPE1
-                        // read vid-id/remark, output to page: --COMM User comment
-                        // read and output other info?:     --UFID Unique file identifier,  --WXXX "User-defined URL data", --TXXX User-Defined text data, , --TMOO Mood, --TLAN Audio Languages,  
-                        // check whether file is writable
-                        // have edit buttons or text fields to enable changing song or artist
-
-
-
-                        metaDataProcess = new System.Diagnostics.Process();
-                        //proc.EnableRaisingEvents = false; // idk whether to use this.
-                        metaDataProcess.StartInfo.FileName = metaDataProgram;
-                        metaDataProcess.StartInfo.Arguments = "--verbose --list-raw " + fileRequested;
-                        metaDataProcess.StartInfo.RedirectStandardOutput = true;
-                        metaDataProcess.StartInfo.RedirectStandardError = true;
-                        metaDataProcess.StartInfo.UseShellExecute = false;
-
-                        bool metaDataProgramExecutedCorrectly = false;
-                        int? exitCode = null;
-                        string standardOutput = String.Empty;
-                        string standardError = String.Empty;
-                        try 
-                        {
-                            metaDataProcess.Start();
-                            if (!metaDataProcess.WaitForExit(5000))
-                            {
-                                metaDataProcess.Kill(true);
-                            }
-                            exitCode = metaDataProcess.ExitCode;
-                            metaDataProgramExecutedCorrectly = (exitCode == 0);
-                            standardOutput = metaDataProcess.StandardOutput.ReadToEnd();
-                            standardError = metaDataProcess.StandardError.ReadToEnd();
-                        } catch {}
-
-                        if (metaDataProgramExecutedCorrectly)
-                        {
-                            <div><div>Output info: </div><div style="min-height: 1.625em" class="border font-monospace">@{try{<pre>@standardOutput</pre>}catch{}}</div></div>
-                            {
-                                var outputLines = standardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries); 
-
-                                int outputLinesCount = outputLines.Count();
-                                <table class="table table-dark table-striped table-bordered table-hover">
-                                    <thead>
-                                        <tr><th scope="col">MetaData</th></tr>
-                                    </thead>
-                                    <tbody>@{
-                                            string line; // the current line.
-                                            string[] lineFrameContents; // all the details of the frame excluding the name and containing parenthises. Includes the value (AKA lineFrameValue) and other details.
-                                            int indexOfFirstOpenParenthises;
-                                            string lineFrameId;    // AKA the name of the metadata-field.
-                                            string lineFrameValue; // AKA the value of the metadata-field.
-                                            string lineFrameValuePrecursor; // the precursor to the lineFrameValue
-                                            int lineFrameValueStartIndex; // the precursor to the lineFrameValue
-
-                                            // skip the first one because it's just saying the filename.
-                                            for (int i = 1; i < outputLinesCount; ++i)
-                                            {
-                                                line = outputLines[i];
-                                                indexOfFirstOpenParenthises = line.IndexOf('(');
-                                                lineFrameId = line.Substring(0, indexOfFirstOpenParenthises);
-
-                                                lineFrameContents = line.Substring(indexOfFirstOpenParenthises + 1, line.LastIndexOf(')') - indexOfFirstOpenParenthises - 1).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                                                lineFrameValuePrecursor = lineFrameContents.Single(deet => deet.StartsWith("text=", StringComparison.CurrentCultureIgnoreCase));
-                                                lineFrameValueStartIndex = lineFrameValuePrecursor.IndexOf("['") + 2;
-                                                lineFrameValue = lineFrameValuePrecursor.Substring(lineFrameValueStartIndex, lineFrameValuePrecursor.LastIndexOf("']") - lineFrameValueStartIndex);
-                                                
-                                                {<tr><td>
-                                                    <details>
-                                                        @* FIXME: This form should use asp-for  and not for,name,etc. *@
-                                                        <summary>
-                                                            <form action="#" method="post" style="display: inline">
-                                                                <label for="@lineFrameId">@lineFrameId</label>: 
-                                                                <input id="@lineFrameId" name="@lineFrameId" type="text" value="@lineFrameValue" placeholder="@lineFrameValue" />
-                                                            </form>
-                                                        </summary>
-                                                        @line
-                                                    </details>
-                                                </td></tr>}
-                                            }
-                                    }</tbody>
-                                </table>
-                            }
-                        }
-                        else
-                        {
-                            <div>
-                                <div class="text-danger">Failed to get metadata for file.</div>
-                                <div>Exit code (if any): <code class="border font-monospace text-danger">@{try{<span>@exitCode</span>}catch{}}</code></div>
-                                <div>
-                                    <form action="#" method="post">
-                                        <div style="display: inline-block; width: 49%">Output info (if any): </div>
-                                        <div style="display: inline-block; width: 49%; min-height: 1.625em" class="border font-monospace">@{try{<pre>@standardOutput</pre>}catch{}}</div>
-                                    </form>
-                                </div>
-                                <div>
-                                    <div style="display: inline-block; width: 49%">Error info (if any): </div>
-                                    <div style="display: inline-block; width: 49%; min-height: 1.625em" class="border font-monospace text-danger">@{try{<pre>@standardError</pre>}catch{}}</div></div>
-                            </div>
-                        }
-
-
-                    }
-
-                }
-            </div>
-        }
-        else
-        {
-            var files = Model.CurrentDirectory.EnumerateFiles();
-            if (files is not null && files.Count() >= 1)
             {
-                {
-                    <div>Quantity of files: @files.Count()</div>
-                    <table class="table table-dark table-striped table-bordered table-hover">
-                        <thead>
-                            <tr><th scope="col">Filename</th></tr>
-                        </thead>
-                        <tbody>@{
-                                foreach (FileInfo file in files)
-                                {
-                                    {<tr><td><code><a asp-action="Files" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
-                                }
-                        }</tbody>
-                    </table>}
+                <div>Quantity of files: @files.Count()</div>
+                <table class="table table-dark table-striped table-bordered table-hover">
+                    <thead>
+                        <tr><th scope="col">Filename</th></tr>
+                    </thead>
+                    <tbody>@{
+                            foreach (FileInfo file in files)
+                            {
+                                {<tr><td><code><a asp-action="File" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
+                            }
+                    }</tbody>
+                </table>
             }
         }
     }
