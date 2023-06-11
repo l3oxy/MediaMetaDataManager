@@ -1,5 +1,6 @@
 ﻿@model DirectoryModel;
 @using System.IO;
+@using MediaMetaDataManager.MetaData;
 @{
     ViewData["Title"] = "Files";
 }
@@ -16,18 +17,32 @@
         var files = Model.CurrentDirectory.EnumerateFiles();
         if (files is not null && (files.Count() >= 1))
         {
+            bool metaDataProgramOnline = MetaDataProgram.MetaDataProgramCheck();
             {
                 <div>Quantity of files: @files.Count()</div>
                 <table class="table table-dark table-striped table-bordered table-hover">
                     <thead>
-                        <tr><th scope="col">Filename</th></tr>
+                        <tr><th scope="col">Filename</th> <th scope="col">T</th> <th scope="col">A</th> <th scope="col">C</th></tr>
                     </thead>
-                    <tbody>@{
-                            foreach (FileInfo file in files)
+                    <tbody>
+                        @foreach (FileInfo file in files)
                             {
-                                {<tr><td><code><a asp-action="File" asp-route-id=@file.Name>@file.Name</a></code></td></tr>}
+                                <tr>
+                                    <td><code><a asp-action="File" asp-route-id=@file.Name>@file.Name</a></code></td>
+                                    @if (metaDataProgramOnline) {
+                                        var metaDataProgramOutput = MetaDataProgram.GetInfo(new FileInfo(file.FullName));
+                                        
+                                        @if (metaDataProgramOutput.Frames.ContainsKey("TIT2")){<td>✅</td>}else{<td>❌</td>}
+                                        @if (metaDataProgramOutput.Frames.ContainsKey("TPE1")){<td>✅</td>}else{<td>❌</td>}
+                                        @if (metaDataProgramOutput.Frames.ContainsKey("COMM")){<td>✅</td>}else{<td>❌</td>}
+                                    } else {
+                                        <td>❌</td>
+                                        <td>❌</td>
+                                        <td>❌</td>
+                                    }
+                                </tr>
                             }
-                    }</tbody>
+                    </tbody>
                 </table>
             }
         }

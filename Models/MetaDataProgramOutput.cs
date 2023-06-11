@@ -1,6 +1,6 @@
 namespace MediaMetaDataManager.MetaData;
 
-public class FileMetaData 
+public class MetaDataProgramOutput 
 {
     public int? ExitCode = null;
     public bool SuccessfullyRead 
@@ -10,9 +10,24 @@ public class FileMetaData
             return ((ExitCode is not null) && (ExitCode == 0));
         } 
     }
-    public string? StandardOutput; // TODO: SHould probs change this to readonly or a property or something to prevent this field from being written to, instead they should forced to use the method below
     public string? StandardError;
-    public Queue<FileMetaDataFrame> Frames = new();
+    private string? _standardOutput;
+    public string? StandardOutput 
+    { 
+        get 
+        { 
+            return _standardOutput; 
+        }
+
+        set
+        {
+            if (value is not null)
+            {
+                this.SetStandardOutput(value);
+            }
+        } 
+    }
+    public Dictionary<string, string> Frames = new();
 
 
 
@@ -21,7 +36,7 @@ public class FileMetaData
     */
     public void SetStandardOutput(string standardOutput)
     {
-        this.StandardOutput = standardOutput;
+        this._standardOutput = standardOutput;
 
         var outputLines = standardOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries); 
         int outputLinesCount = outputLines.Count();
@@ -32,7 +47,6 @@ public class FileMetaData
         string lineFrameValue; // AKA the value of the metadata-field.
         string lineFrameValuePrecursor; // the precursor to the lineFrameValue
         int lineFrameValueStartIndex; // the precursor to the lineFrameValue
-        FileMetaDataFrame tag;
 
         // skip the first one because it's just saying the filename.
         for (int i = 1; i < outputLinesCount; ++i)
@@ -56,10 +70,8 @@ public class FileMetaData
             lineFrameValuePrecursor = lineFrameContents.Single(deet => deet.StartsWith("text=", StringComparison.CurrentCultureIgnoreCase));
             lineFrameValueStartIndex = lineFrameValuePrecursor.IndexOf("['") + 2;
             lineFrameValue = lineFrameValuePrecursor.Substring(lineFrameValueStartIndex, lineFrameValuePrecursor.LastIndexOf("']") - lineFrameValueStartIndex);
-            
-            tag = new(){Raw = line, Id = lineFrameId, Value = lineFrameValue};
 
-            this.Frames.Enqueue(tag);
+            Frames.Add(lineFrameId, lineFrameValue);
         }
     }
 }

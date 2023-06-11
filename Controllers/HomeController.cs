@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MediaMetaDataManager.Models;
+using MediaMetaDataManager.MetaData;
 using System.IO;
 
 namespace MediaMetaDataManager.Controllers;
@@ -30,11 +31,12 @@ public class HomeController : Controller
         DirectoryModel model = new(RequestedNewDirectoryFullPath: postArgs.RequestedNewDirectory);
 
         // If user provided a directory that exists, create a session variable of this new dir. Else try to get old session variable of dir.
-        if (model.RequestedNewDirectory.Exists)
+        if (model.RequestedNewDirectory is not null && model.RequestedNewDirectory.Exists)
         {
             HttpContext.Session.SetString("Directory", model.RequestedNewDirectory.FullName);
             model.CurrentDirectory = model.RequestedNewDirectory;
         } else {
+            // TODO: below throws on "/media/fnn/WD2TB/Media/Music/new] "
             model.CurrentDirectory = new DirectoryInfo(HttpContext.Session.GetString("Directory"));
         }
 
@@ -47,7 +49,7 @@ public class HomeController : Controller
         return View(model: myModel);
     }
 
-    public IActionResult File()
+    public IActionResult File(FileMetaData fileMetaData)
     {
         Microsoft.Extensions.Primitives.StringValues ids;
         if (HttpContext.Request.Query.TryGetValue("id", out ids) && ids.Count == 1)
@@ -59,6 +61,32 @@ public class HomeController : Controller
         {
             return RedirectToAction(actionName: nameof(Files));
         }
+    }
+
+    [HttpPost]
+    public RedirectToActionResult FileChange(FileMetaData fileMetaData)
+    {
+        if (fileMetaData.filePath is null) 
+        {
+            return RedirectToAction(actionName: nameof(Files));
+        }
+
+        
+        _ = MetaDataProgram.ChangeMetaData(fileMetaData);
+
+        var fileName = new FileInfo(fileMetaData.filePath).Name;// filepath to fileInfo or something to get the file path to redirect to
+        var myRouteValues = new RouteValueDictionary();
+        myRouteValues.Add("id", fileName);
+        return RedirectToAction(actionName: nameof(File), routeValues: myRouteValues);
+
+        /*return "filePath=" + fileMetaData.filePath + ';' + 
+        "TIT2=" + fileMetaData.TIT2 + ";" +
+        "TPE1=" + fileMetaData.TPE1 + ";" +
+        "COMM=" + fileMetaData.COMM + ";" + "FileName:" + fileName;
+        */
+        
+        // TODO: make changes then redirect back to the GET File (remember the GET param to go to the same file)
+
     }
 
 

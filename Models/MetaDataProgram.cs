@@ -1,4 +1,9 @@
+using MediaMetaDataManager.Models;
+using System.Diagnostics;
+
 namespace MediaMetaDataManager.MetaData;
+
+// TODO: THIS FILE SHOULD PROBS BE MOVED FROM VIEWS TO IDK MODELS OR /.
 
 class MetaDataProgram {
 
@@ -36,7 +41,7 @@ class MetaDataProgram {
     /**
     <summary>Retrievs metadata information on a given file.</summary>
     */
-    public static FileMetaData GetInfo(FileInfo fileRequested) 
+    public static MetaDataProgramOutput GetInfo(FileInfo fileRequested) 
     {
         // TODO:
         // read song name, output to page: --TIT2 Title,
@@ -56,7 +61,7 @@ class MetaDataProgram {
 
         string standardOutput = String.Empty;
         string standardError = String.Empty;
-        FileMetaData fileMetaData = new();
+        MetaDataProgramOutput fileMetaData = new();
         try 
         {
             metaDataProcess.Start();
@@ -65,10 +70,73 @@ class MetaDataProgram {
                 metaDataProcess.Kill(true);
             }
             fileMetaData.ExitCode = metaDataProcess.ExitCode;
-            fileMetaData.SetStandardOutput(metaDataProcess.StandardOutput.ReadToEnd());
+            fileMetaData.StandardOutput = metaDataProcess.StandardOutput.ReadToEnd();
             fileMetaData.StandardError = metaDataProcess.StandardError.ReadToEnd();
         } catch {}
         
         return fileMetaData;
+    }
+
+    public static int ChangeMetaData(FileMetaData fileMetaData)
+    {
+        ProcessStartInfo startInfo = new(FileName);
+        List<string> framesToDelete = new();
+
+        if (String.IsNullOrWhiteSpace(fileMetaData.TIT2))
+        {
+            framesToDelete.Add(nameof(fileMetaData.TIT2));
+        } 
+        else 
+        {
+            startInfo.ArgumentList.Add($"--{nameof(fileMetaData.TIT2)}={fileMetaData.TIT2}");
+        }
+        
+        if (String.IsNullOrWhiteSpace(fileMetaData.TPE1))
+        {
+            framesToDelete.Add(nameof(fileMetaData.TPE1));
+        }
+        else
+        {
+            startInfo.ArgumentList.Add($"--{nameof(fileMetaData.TPE1)}={fileMetaData.TPE1}");
+        }
+
+        if (String.IsNullOrWhiteSpace(fileMetaData.COMM))
+        {
+            framesToDelete.Add(nameof(fileMetaData.COMM));
+        }
+        else
+        {
+            startInfo.ArgumentList.Add($"--{nameof(fileMetaData.COMM)}={fileMetaData.COMM}");
+        }
+
+        if (framesToDelete.Count > 0)
+        {
+            string framesToDeleteAsCsv = String.Join(',', framesToDelete.ToArray());
+            startInfo.ArgumentList.Add($"--delete-frames={framesToDeleteAsCsv}");
+        }
+
+        startInfo.ArgumentList.Add($"{fileMetaData.filePath}");
+        startInfo.RedirectStandardError = true;
+        startInfo.RedirectStandardOutput = true;
+        startInfo.UseShellExecute = false;
+        Process metaDataProcess = new Process();
+        metaDataProcess.StartInfo = startInfo;
+
+
+        string standardOutput = String.Empty;
+        string standardError = String.Empty;
+        try 
+        {
+            metaDataProcess.Start();
+            if (!metaDataProcess.WaitForExit(5000))
+            {
+                metaDataProcess.Kill(true);
+            }
+            Console.WriteLine(metaDataProcess.ExitCode);
+            Console.WriteLine(metaDataProcess.StandardOutput.ReadToEnd());
+            Console.WriteLine(metaDataProcess.StandardError.ReadToEnd());
+        } catch {}
+
+        return metaDataProcess.ExitCode;
     }
 }
