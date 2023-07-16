@@ -1,45 +1,124 @@
-﻿@model DirectoryModel;
+﻿@model FilesViewModel;
 @using System.IO;
 @using MediaMetaDataManager.MetaData;
+@using MediaMetaDataManager.ViewModels;
+@using System.Web;
 @{
     ViewData["Title"] = "Files";
+
+    /// <summary>Produces the pagination for the page "Files".</summary>
+    /// <remarks>Probably a better way to do this without recomputing this each call.</remarks>
+    async Task FilesPaginationFunction(int quantityOfPages, int filesPerPage)
+    {
+        bool currentPageIsFirstPage = (Model.Page == 1);
+        bool currentPageIsLastPage = (Model.Page == quantityOfPages);
+        int nextPage = Model.Page + 1;
+        int previousPage = Model.Page - 1;
+
+        {
+            <nav class="pagination">
+                @if (currentPageIsFirstPage)
+                {
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <a asp-route-page="1" asp-route-step="@filesPerPage"><span class="border">1⏮️</span></a>
+                    <a asp-route-page="@previousPage" asp-route-step="@filesPerPage">⬅️</a>
+                }
+                
+                @Model.Page
+
+                @if (currentPageIsLastPage)
+                {
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <a asp-route-page="@nextPage" asp-route-step="@filesPerPage">➡️</a>
+                    <a asp-route-page="@quantityOfPages" asp-route-step="@filesPerPage"><span class="border">⏭️@quantityOfPages</span></a>
+                }
+            </nav>
+        }
+    }
 }
 
 <div class="text-center">
-    Current Directory: [<code><a asp-action="Directory">@Model?.CurrentDirectory?.FullName</a></code>]
+    Current Directory: [<code><a asp-action="Directory">@Model?.Directory?.FullName</a></code>]
     @{
-        if (Model is null)
+        if (Model == null || Model.Files == null)
         {
+            return;
+        }
+        int fileCount = Model.Files.Count();
+        if (fileCount < 1)
+        {
+            // FIXME: This shouldn't just quit here. Should still show the table headers, and some message (outside of the table) saying NO DATA or something.
             return;
         }
 
         var symbolYes = '✅';
         var symbolNo = '❌';
         var symbolUnknown = '❔';
+        bool metaDataProgramOnline = MetaDataProgram.MetaDataProgramCheck();
+        int filesPerPage = Model.ResultsPerPage;
+        bool pagination = fileCount > filesPerPage;
+        
+        // Here using Ceiling() so we round up to nearest int (it gives a double for numbers larger than "int.MaxValue"), 
+        // and in case fileCount is small (eg 1) and filesPerPage is large (eg 999999); Ceiling() will round up to 1, thus ensuring never 0.
+        /*
+            TODO: A Concern: Assuming Mid3v2 is accessible, if there are both many files and no pagination (very large filesPerPage), 
+            then load times are very long / computationally expensive.
+            If this were to be a public-facing service, then it might be suseptable to abuse / DoS, even with Authentication & Authorization.
+        */
+        int quantityOfPages = (int)Math.Ceiling((double)fileCount / filesPerPage);
 
-        //Microsoft.Extensions.Primitives.StringValues ids; // not using this so commenting it out. Forgot what it was going to be for.
-        var files = Model.CurrentDirectory.EnumerateFiles();
-        if (files is not null && (files.Count() >= 1))
+        if (Model.Page > quantityOfPages)
         {
-            bool metaDataProgramOnline = MetaDataProgram.MetaDataProgramCheck();
+            Model.Page = quantityOfPages;
+        }
+        else if (Model.Page <= 0)
+        {
+            Model.Page = 1;
+        }
+
+        {
+            <div>Quantity of files: @fileCount</div>
             {
-                <div>Quantity of files: @files.Count()</div>
-                <table class="table table-dark table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col">Filename</th>
-                            <th scope="col"><abbr title="Title">T</abbr></th>
-                            <th scope="col"><abbr title="Author">A</abbr></th>
-                            <th scope="col"><abbr title="Comment">C</abbr></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (FileInfo file in files)
+                if (pagination)
+                {
+                    await FilesPaginationFunction(quantityOfPages: quantityOfPages, filesPerPage: filesPerPage);
+                }
+            }
+            
+            <table class="table table-dark table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Filename</th>
+                        <th scope="col"><abbr title="Title">T</abbr></th>
+                        <th scope="col"><abbr title="Author">A</abbr></th>
+                        <th scope="col"><abbr title="Comment">C</abbr></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        FileInfo currentFile;
+                        int displayNumber;
+                        // NOTE: Page is 1-based. Indexes are 0-based.
+                        int indexOfFirstFileToDo = (Model.Page - 1) * filesPerPage;
+                        int indexOfLastFileToDo = (Model.Page * filesPerPage) - 1;
+                        for (int i = indexOfFirstFileToDo; i <= indexOfLastFileToDo; ++i)
+                        {
+                            if (i > fileCount - 1) {break;}
+                            currentFile = Model.Files[i];
+                            displayNumber = i + 1;
                             {
                                 <tr>
-                                    <td><code><a asp-action="File" asp-route-id=@file.Name>@file.Name</a></code></td>
+                                    <td>@displayNumber</td>
+                                    <td><code><a asp-action="File" asp-route-id=@currentFile.Name>@currentFile.Name</a></code></td>
                                     @if (metaDataProgramOnline) {
-                                        var metaDataProgramOutput = MetaDataProgram.GetInfo(new FileInfo(file.FullName));
+                                        var metaDataProgramOutput = MetaDataProgram.GetInfo(currentFile);
                                         
                                         @if (metaDataProgramOutput.Frames.ContainsKey("TIT2")){<td>@symbolYes</td>}else{<td>@symbolNo</td>}
                                         @if (metaDataProgramOutput.Frames.ContainsKey("TPE1")){<td>@symbolYes</td>}else{<td>@symbolNo</td>}
@@ -51,8 +130,16 @@
                                     }
                                 </tr>
                             }
-                    </tbody>
-                </table>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            {
+                if (pagination)
+                {
+                    await FilesPaginationFunction(quantityOfPages: quantityOfPages, filesPerPage: filesPerPage);
+                }
             }
         }
     }

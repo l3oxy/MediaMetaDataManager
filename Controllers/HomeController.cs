@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MediaMetaDataManager.Models;
+using MediaMetaDataManager.ViewModels;
 using MediaMetaDataManager.MetaData;
 using System.IO;
 
@@ -43,10 +44,31 @@ public class HomeController : Controller
         return View(model: model);
     }
 
-    public IActionResult Files()
+    public IActionResult Files(FilesModel model)
     {
-        DirectoryModel myModel = new(CurrentDirectoryFullPath: HttpContext.Session.GetString("Directory"));
-        return View(model: myModel);
+        DirectoryInfo? directory = null;
+        string? sessionVariableDirectory = HttpContext.Session.GetString("Directory");
+        if (sessionVariableDirectory != null)
+        {
+            try
+            {
+                directory = new(sessionVariableDirectory);
+            } catch (Exception){}
+        }
+
+        if (directory == null)
+        {
+            try
+            {
+                directory = new(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic));
+            } catch (Exception){}
+        }
+
+        var viewModel = new FilesViewModel(
+            page:               model.Page, 
+            resultsPerPage:     model.Step, 
+            directory:          directory   );
+        return View(model: viewModel);
     }
 
     public IActionResult File(FileMetaData fileMetaData)
@@ -88,8 +110,6 @@ public class HomeController : Controller
         // TODO: make changes then redirect back to the GET File (remember the GET param to go to the same file)
 
     }
-
-
 
     public IActionResult Privacy()
     {
