@@ -67,59 +67,53 @@
                                         <tr><th scope="col">Name</th> <th scope="col">Current Value</th> <th scope="col">New Value</th></tr>
                                     </thead>
                                     <tbody>@{
-                                            if (fileMetaData.Frames.Count == 0) 
-                                            {
-                                                {<div>No metadata found on this file.</div>}
-                                            }
-                                            else
-                                            {
-                                                // Check for pre-existing values.
-                                                string? TIT2;
-                                                fileMetaData.Frames.TryGetValue(nameof(TIT2), out TIT2);
-                                                string? TPE1;
-                                                fileMetaData.Frames.TryGetValue(nameof(TPE1), out TPE1);
-                                                string? COMM;
-                                                fileMetaData.Frames.TryGetValue(nameof(COMM), out COMM);
-                                                {
-                                                    <input id="filePath" name="filePath" type="text" value="@fileRequested" />
+                                        // Check for pre-existing values.
+                                        string? TIT2;
+                                        fileMetaData.Frames.TryGetValue(nameof(TIT2), out TIT2);
+                                        string? TPE1;
+                                        fileMetaData.Frames.TryGetValue(nameof(TPE1), out TPE1);
+                                        string? COMM;
+                                        fileMetaData.Frames.TryGetValue(nameof(COMM), out COMM);
+                                        
+                                        {
+                                            <input id="filePath" name="filePath" type="text" value="@fileRequested" />
 
-                                                    <tr>
-                                                        <td>
-                                                            <label for="TIT2">TIT2 / Title</label>
-                                                        </td>
-                                                        <td>
-                                                            <input id="TIT2-old" class="metaDataFrame_old" type="text" value="@TIT2" readonly="readonly" />
-                                                        </td>
-                                                        <td>
-                                                            <input id="TIT2" name="TIT2" type="text" value="@TIT2" />
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                            <label for="TPE1">TPE1 / Artist</label>
-                                                        </td>
-                                                        <td>
-                                                            <input id="TPE1-old" class="metaDataFrame_old" type="text" value="@TPE1" readonly="readonly" />
-                                                        </td>
-                                                        <td>
-                                                            <input id="TPE1" name="TPE1" type="text" value="@TPE1" />
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                            <label for="COMM">COMM / Comment</label>
-                                                        </td>
-                                                        <td>
-                                                            <input id="COMM-old" class="metaDataFrame_old" type="text" value="@COMM" readonly="readonly" />
-                                                        </td>
-                                                        <td>
-                                                            <input id="COMM" name="COMM" type="text" value="@COMM" />
-                                                        </td>
-                                                    </tr>
+                                            <tr>
+                                                <td>
+                                                    <label for="TIT2">TIT2 / Title</label>
+                                                </td>
+                                                <td>
+                                                    <input id="TIT2-old" class="metaDataFrame_old" type="text" value="@TIT2" readonly="readonly" />
+                                                </td>
+                                                <td>
+                                                    <input id="TIT2" name="TIT2" type="text" value="@TIT2" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label for="TPE1">TPE1 / Artist</label>
+                                                </td>
+                                                <td>
+                                                    <input id="TPE1-old" class="metaDataFrame_old" type="text" value="@TPE1" readonly="readonly" />
+                                                </td>
+                                                <td>
+                                                    <input id="TPE1" name="TPE1" type="text" value="@TPE1" />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label for="COMM">COMM / Comment</label>
+                                                </td>
+                                                <td>
+                                                    <input id="COMM-old" class="metaDataFrame_old" type="text" value="@COMM" readonly="readonly" />
+                                                </td>
+                                                <td>
+                                                    <input id="COMM" name="COMM" type="text" value="@COMM" />
+                                                </td>
+                                            </tr>
 
-                                                    <input type="submit" value="Submit" />
-                                                }
-                                            }
+                                            <input type="submit" value="Submit" />
+                                        }
                                     }</tbody>
                                 </table>
                                 </form>
